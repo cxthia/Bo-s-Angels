@@ -1,0 +1,63 @@
+{
+  "manifest_version": 3,
+  "name": "Predictive Voice Hints",
+  "version": "1.0.0",
+  "description": "Voice-enabled navigation assistant for users with motor disabilities. Predicts click targets and enables voice selection.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "content/candidates.js",
+        "content/pointer.js",
+        "content/risk.js",
+        "content/ranking.js",
+        "content/overlay.js",
+        "content/input.js",
+        "content/logging.js",
+        "content/content-script.js"
+      ],
+      "css": ["content/overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options/options.html",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "commands": {
+    "toggle-hints": {
+      "suggested_key": {
+        "default": "Alt+H",
+        "mac": "Alt+H"
+      },
+      "description": "Toggle hint overlay"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["content/overlay.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

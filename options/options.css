@@ -1,0 +1,201 @@
+/* options.css - Minimal functional styling for options page */
+
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  color: #333;
+  background: #f8f9fa;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  background: white;
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  margin: 0 0 32px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #0066ff;
+}
+
+h2 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.section {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.setting {
+  margin-bottom: 24px;
+}
+
+.setting:last-child {
+  margin-bottom: 0;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e0e0e0;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0066ff;
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0066ff;
+  cursor: pointer;
+  border: none;
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: #0066ff;
+}
+
+.help {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: #5f6368;
+}
+
+.btn {
+  padding: 10px 24px;
+  background: #0066ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-right: 8px;
+}
+
+.btn:hover {
+  background: #0052cc;
+}
+
+.btn:active {
+  background: #003d99;
+}
+
+.btn.secondary {
+  background: #f1f3f4;
+  color: #333;
+}
+
+.btn.secondary:hover {
+  background: #e8eaed;
+}
+
+.btn.secondary:active {
+  background: #dadce0;
+}
+
+.save-status {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  background: #137333;
+  color: white;
+  border-radius: 4px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.save-status.show {
+  opacity: 1;
+}
+
+.metrics-info {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.metrics-info p {
+  margin: 8px 0;
+}
+
+.metrics-info p:first-child {
+  margin-top: 0;
+}
+
+.metrics-info p:last-child {
+  margin-bottom: 0;
+}
+
+label:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+label:has(input[type="checkbox"]) span {
+  flex: 1;
+}

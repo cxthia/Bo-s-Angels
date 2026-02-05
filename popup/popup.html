@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Voice Hints</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <h1>Voice Hints</h1>
+    
+    <div class="section">
+      <div class="control">
+        <label>
+          <input type="checkbox" id="enableExtension" checked>
+          <span>Enable Extension</span>
+        </label>
+      </div>
+
+      <div class="control">
+        <label>
+          <input type="checkbox" id="enableVoice">
+          <span>Enable Voice Commands</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section status-section">
+      <div id="status" class="status">Ready</div>
+      <div id="voiceStatus" class="voice-status"></div>
+    </div>
+
+    <div class="section">
+      <button id="settingsBtn" class="btn">Settings</button>
+    </div>
+
+    <div class="section help">
+      <h3>Quick Help</h3>
+      <ul>
+        <li><strong>Alt+H:</strong> Toggle hints</li>
+        <li><strong>1-6:</strong> Select numbered hint</li>
+        <li><strong>Voice:</strong> Say "one" through "six"</li>
+        <li><strong>Confirm:</strong> Say "confirm" for risky actions</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

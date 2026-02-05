@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Voice Hints Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Voice Hints Settings</h1>
+
+    <section class="section">
+      <h2>Prediction Settings</h2>
+      
+      <div class="setting">
+        <label for="coneAngle">
+          Prediction Cone Angle: <span id="coneAngleValue">40</span>°
+        </label>
+        <input type="range" id="coneAngle" min="20" max="60" value="40" step="5">
+        <p class="help">Wider angles predict more elements in front of cursor</p>
+      </div>
+
+      <div class="setting">
+        <label for="maxDistance">
+          Max Distance: <span id="maxDistanceValue">600</span>px
+        </label>
+        <input type="range" id="maxDistance" min="300" max="1200" value="600" step="100">
+        <p class="help">Maximum distance to consider elements for prediction</p>
+      </div>
+
+      <div class="setting">
+        <label for="topK">
+          Number of Hints: <span id="topKValue">6</span>
+        </label>
+        <input type="range" id="topK" min="3" max="9" value="6" step="1">
+        <p class="help">How many numbered hints to show</p>
+      </div>
+
+      <div class="setting">
+        <label for="hysteresis">
+          Prediction Stability: <span id="hysteresisValue">800</span>ms
+        </label>
+        <input type="range" id="hysteresis" min="300" max="1500" value="800" step="100">
+        <p class="help">How long to keep predictions stable (prevents flickering)</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Safety Settings</h2>
+      
+      <div class="setting">
+        <label>
+          <input type="checkbox" id="riskConfirmation" checked>
+          <span>Require confirmation for risky actions</span>
+        </label>
+        <p class="help">Ask for confirmation before delete/pay/submit actions</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Appearance</h2>
+      
+      <div class="setting">
+        <label for="badgeSize">Badge Size</label>
+        <select id="badgeSize">
+          <option value="small">Small</option>
+          <option value="medium" selected>Medium</option>
+          <option value="large">Large</option>
+          <option value="xlarge">Extra Large</option>
+        </select>
+        <p class="help">Size of numbered hint badges</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Data & Metrics</h2>
+      
+      <button id="exportBtn" class="btn">Export Metrics as JSON</button>
+      <button id="clearBtn" class="btn secondary">Clear Metrics</button>
+      
+      <div id="metricsInfo" class="metrics-info"></div>
+    </section>
+
+    <section class="section">
+      <button id="resetBtn" class="btn secondary">Reset All Settings to Default</button>
+    </section>
+
+    <div id="saveStatus" class="save-status"></div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

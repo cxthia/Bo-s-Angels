@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Hints Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+    h1 { color: #0066ff; }
+    .section {
+      background: white;
+      padding: 30px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    button, .btn {
+      padding: 12px 24px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #0066ff;
+      color: white;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+    .btn-warning {
+      background: #ffc107;
+      color: black;
+    }
+    button:hover, .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .small-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    .small-buttons button {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+    .form-section input, .form-section select, .form-section textarea {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .action-result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f4f8;
+      border-radius: 4px;
+      display: none;
+    }
+    .action-result.show {
+      display: block;
+    }
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .links a {
+      color: #0066ff;
+      text-decoration: none;
+      padding: 8px;
+    }
+    .links a:hover {
+      background: #f0f0f0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Voice Hints Extension - Test Page</h1>
+  <p>Use this page to test the Predictive Voice Hints extension. Move your mouse toward different elements and watch hints appear.</p>
+
+  <div class="section">
+    <h2>Standard Buttons</h2>
+    <p>Test basic button prediction and selection:</p>
+    <div class="button-grid">
+      <button class="btn btn-primary" onclick="logAction('Primary Button')">Primary</button>
+      <button class="btn btn-secondary" onclick="logAction('Secondary Button')">Secondary</button>
+      <button class="btn btn-success" onclick="logAction('Success Button')">Success</button>
+      <button class="btn btn-warning" onclick="logAction('Warning Button')">Warning</button>
+      <button class="btn btn-primary" onclick="logAction('Next Button')">Next</button>
+      <button class="btn btn-primary" onclick="logAction('Continue Button')">Continue</button>
+      <button class="btn btn-secondary" onclick="logAction('Back Button')">Back</button>
+      <button class="btn btn-secondary" onclick="logAction('Cancel Button')">Cancel</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Dense Small Buttons</h2>
+    <p>Test precision with many small targets close together:</p>
+    <div class="small-buttons">
+      <button onclick="logAction('Btn 1')">1</button>
+      <button onclick="logAction('Btn 2')">2</button>
+      <button onclick="logAction('Btn 3')">3</button>
+      <button onclick="logAction('Btn 4')">4</button>
+      <button onclick="logAction('Btn 5')">5</button>
+      <button onclick="logAction('Btn 6')">6</button>
+      <button onclick="logAction('Btn 7')">7</button>
+      <button onclick="logAction('Btn 8')">8</button>
+      <button onclick="logAction('Btn 9')">9</button>
+      <button onclick="logAction('Btn 10')">10</button>
+      <button onclick="logAction('Btn 11')">11</button>
+      <button onclick="logAction('Btn 12')">12</button>
+      <button onclick="logAction('Btn 13')">13</button>
+      <button onclick="logAction('Btn 14')">14</button>
+      <button onclick="logAction('Btn 15')">15</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Risky Actions (Confirmation Required)</h2>
+    <p>These buttons should require confirmation:</p>
+    <div class="button-grid">
+      <button class="btn btn-danger" onclick="logAction('Delete')">Delete Item</button>
+      <button class="btn btn-danger" onclick="logAction('Remove')">Remove</button>
+      <button class="btn btn-warning" onclick="logAction('Pay')">Pay $99.99</button>
+      <button class="btn btn-primary" onclick="logAction('Submit')">Submit Form</button>
+      <button class="btn btn-secondary" onclick="logAction('Sign Out')">Sign Out</button>
+      <button class="btn btn-danger" onclick="logAction('Unsubscribe')">Unsubscribe</button>
+    </div>
+  </div>
+
+  <div class="section form-section">
+    <h2>Form Elements</h2>
+    <p>Test focus on input fields:</p>
+    <label>
+      Name:
+      <input type="text" placeholder="Enter your name" onfocus="logAction('Name Input Focused')">
+    </label>
+    <label>
+      Email:
+      <input type="email" placeholder="Enter your email" onfocus="logAction('Email Input Focused')">
+    </label>
+    <label>
+      Country:
+      <select onchange="logAction('Country Selected: ' + this.value)">
+        <option value="">Select a country</option>
+        <option value="US">United States</option>
+        <option value="UK">United Kingdom</option>
+        <option value="CA">Canada</option>
+        <option value="AU">Australia</option>
+      </select>
+    </label>
+    <label>
+      Message:
+      <textarea placeholder="Enter your message" onfocus="logAction('Textarea Focused')"></textarea>
+    </label>
+  </div>
+
+  <div class="section">
+    <h2>Links</h2>
+    <p>Test link detection:</p>
+    <div class="links">
+      <a href="#" onclick="event.preventDefault(); logAction('Link 1')">Link to Documentation</a>
+      <a href="#" onclick="event.preventDefault(); logAction('Link 2')">Link to Settings</a>
+      <a href="#" onclick="event.preventDefault(); logAction('Link 3')">Link to Dashboard</a>
+      <a href="#" onclick="event.preventDefault(); logAction('Link 4')">Link to Profile</a>
+      <a href="#" onclick="event.preventDefault(); logAction('Link 5')">Link to Help Center</a>
+    </div>
+  </div>
+
+  <div id="actionResult" class="action-result">
+    <strong>Action Performed:</strong> <span id="actionText"></span>
+  </div>
+
+  <script>
+    function logAction(action) {
+      console.log('[Test Page] Action:', action);
+      const resultDiv = document.getElementById('actionResult');
+      const resultText = document.getElementById('actionText');
+      resultText.textContent = action;
+      resultDiv.classList.add('show');
+      
+      setTimeout(() => {
+        resultDiv.classList.remove('show');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
