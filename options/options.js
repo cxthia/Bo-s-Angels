@@ -105,7 +105,9 @@ function setupListeners() {
 
 // Save settings to storage
 async function saveSettings() {
+  console.log('[Options] Saving settings:', currentSettings);
   await chrome.storage.local.set({ settings: currentSettings });
+  console.log('[Options] Settings saved to storage');
   showSaveStatus('Settings saved');
 }
 

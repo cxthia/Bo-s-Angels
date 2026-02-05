@@ -8,6 +8,7 @@ class HintOverlay {
     this.highlights = [];
     this.statusIndicator = null;
     this.visible = false;
+    this.badgeSize = 'medium'; // Default size
   }
 
   init() {
@@ -78,6 +79,12 @@ class HintOverlay {
       if (candidate.isRisky) {
         badge.classList.add('risky');
       }
+      
+      // Apply current badge size
+      if (this.badgeSize !== 'medium') {
+        badge.classList.add(`size-${this.badgeSize}`);
+      }
+      
       badge.textContent = number;
 
       // Position badge (offset from element to avoid overlap)
@@ -152,6 +159,10 @@ class HintOverlay {
 
   setBadgeSize(size) {
     // size: 'small', 'medium', 'large', 'xlarge'
+    console.log('[Overlay] Setting badge size to:', size, 'Current badges:', this.badges.length);
+    this.badgeSize = size;
+    
+    // Update existing badges
     this.badges.forEach(badge => {
       badge.classList.remove('size-small', 'size-large', 'size-xlarge');
       if (size !== 'medium') {

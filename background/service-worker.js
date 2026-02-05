@@ -17,7 +17,8 @@ chrome.runtime.onInstalled.addListener(async () => {
       maxDistance: 600,
       topK: 6,
       hysteresis: 800,
-      riskConfirmation: true
+      riskConfirmation: true,
+      badgeSize: 'medium'
     }
   });
 });

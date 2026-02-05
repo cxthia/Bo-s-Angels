@@ -18,6 +18,7 @@ class CandidateRanker {
     this.lastPredictions = [];
     this.lastPredictionTime = 0;
     this.weights = { ...WEIGHTS };
+    this.hysteresisTime = HYSTERESIS_TIME;
   }
 
   // Compute score for a candidate
@@ -64,7 +65,7 @@ class CandidateRanker {
     const now = Date.now();
     const timeSinceLastPrediction = now - this.lastPredictionTime;
 
-    if (timeSinceLastPrediction < HYSTERESIS_TIME && this.lastPredictions.length > 0) {
+    if (timeSinceLastPrediction < this.hysteresisTime && this.lastPredictions.length > 0) {
       // Keep previous predictions if they're still in top candidates with reasonable score
       const previousElements = new Set(
         this.lastPredictions.map(p => p.element)
@@ -96,6 +97,12 @@ class CandidateRanker {
 
   getTopK() {
     return this.topK;
+  }
+
+  setHysteresisTime(time) {
+    // Update the constant by modifying it on the instance
+    console.log('[CandidateRanker] Setting hysteresis time to:', time);
+    this.hysteresisTime = time;
   }
 
   updateWeights(newWeights) {

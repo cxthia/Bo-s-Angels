@@ -16,6 +16,8 @@ class PointerTracker {
     this.updateCallbacks = [];
     this.rafId = null;
     this.isTracking = false;
+    this.coneAngle = CONE_ANGLE_DEG;
+    this.maxDistance = MAX_DISTANCE;
   }
 
   start() {
@@ -116,7 +118,7 @@ class PointerTracker {
     const dirY = this.velocity.y / speed;
 
     const currentPos = this.currentPosition;
-    const coneAngleRad = (CONE_ANGLE_DEG * Math.PI) / 180;
+    const coneAngleRad = (this.coneAngle * Math.PI) / 180;
     const filtered = [];
 
     for (const candidate of candidates) {
@@ -127,7 +129,7 @@ class PointerTracker {
       const toTargetY = center.y - currentPos.y;
       const distance = Math.sqrt(toTargetX ** 2 + toTargetY ** 2);
 
-      if (distance === 0 || distance > MAX_DISTANCE) continue;
+      if (distance === 0 || distance > this.maxDistance) continue;
 
       // Normalize
       const toTargetDirX = toTargetX / distance;
@@ -170,6 +172,16 @@ class PointerTracker {
 
   getIsMoving() {
     return this.isMoving;
+  }
+
+  setConeAngle(angle) {
+    console.log('[PointerTracker] Setting cone angle to:', angle);
+    this.coneAngle = angle;
+  }
+
+  setMaxDistance(distance) {
+    console.log('[PointerTracker] Setting max distance to:', distance);
+    this.maxDistance = distance;
   }
 }
 

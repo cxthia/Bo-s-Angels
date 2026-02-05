@@ -23,6 +23,11 @@ let logger;
 let currentPredictions = [];
 let selectionStartTime = null;
 
+// Minimum display time for badges (to prevent them from disappearing too quickly)
+const MIN_BADGE_DISPLAY_TIME = 5000; // 5 seconds
+let lastBadgeRenderTime = 0;
+let badgeClearTimeout = null;
+
 // Initialize
 async function init() {
   console.log('[Voice Hints] Initializing content script');
@@ -36,7 +41,8 @@ async function init() {
     maxDistance: 600,
     topK: 6,
     hysteresis: 800,
-    riskConfirmation: true
+    riskConfirmation: true,
+    badgeSize: 'medium'
   };
 
   // Initialize modules
@@ -61,8 +67,24 @@ async function init() {
 }
 
 function applySettings() {
+  console.log('[Voice Hints] Applying settings:', state.settings);
+  
   ranker.setTopK(state.settings.topK);
+  ranker.setHysteresisTime(state.settings.hysteresis || 2000);
   riskDetector.setEnabled(state.settings.riskConfirmation);
+  
+  // Apply badge size if set
+  if (state.settings.badgeSize && overlay) {
+    console.log('[Voice Hints] Setting badge size to:', state.settings.badgeSize);
+    overlay.setBadgeSize(state.settings.badgeSize);
+  }
+  
+  // Update pointer tracker cone settings
+  if (pointerTracker) {
+    console.log('[Voice Hints] Setting cone angle:', state.settings.coneAngle, 'max distance:', state.settings.maxDistance);
+    pointerTracker.setConeAngle(state.settings.coneAngle || 40);
+    pointerTracker.setMaxDistance(state.settings.maxDistance || 600);
+  }
 }
 
 function setupEventHandlers() {
@@ -169,8 +191,31 @@ function updatePredictions() {
   // Render overlay
   if (predictions.length > 0) {
     overlay.render(predictions);
+    lastBadgeRenderTime = Date.now();
   } else {
+    clearBadgesWithDelay();
+  }
+}
+
+function clearBadgesWithDelay() {
+  // Don't clear immediately - wait for minimum display time
+  const timeSinceLastRender = Date.now() - lastBadgeRenderTime;
+  if (timeSinceLastRender < MIN_BADGE_DISPLAY_TIME && currentPredictions.length > 0) {
+    // Schedule clear after remaining time
+    if (!badgeClearTimeout) {
+      const remainingTime = MIN_BADGE_DISPLAY_TIME - timeSinceLastRender;
+      badgeClearTimeout = setTimeout(() => {
+        overlay.clear();
+        currentPredictions = [];
+        inputHandler.setPredictions([]);
+        badgeClearTimeout = null;
+      }, remainingTime);
+    }
+  } else {
+    // Clear immediately if enough time has passed
     overlay.clear();
+    currentPredictions = [];
+    inputHandler.setPredictions([]);
   }
 }
 
@@ -280,6 +325,8 @@ function handleVoiceCommand(message) {
 
 // Storage change listener
 chrome.storage.onChanged.addListener((changes, areaName) => {
+  console.log('[Voice Hints] Storage changed:', changes, 'area:', areaName);
+  
   if (areaName === 'local') {
     if (changes.enabled) {
       state.enabled = changes.enabled.newValue;
@@ -291,6 +338,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     }
 
     if (changes.settings) {
+      console.log('[Voice Hints] Settings changed from', changes.settings.oldValue, 'to', changes.settings.newValue);
       state.settings = changes.settings.newValue;
       applySettings();
       if (state.enabled) {
