@@ -1,10 +1,10 @@
 // pointer.js - Tracks pointer movement and computes prediction cone
 
 const HISTORY_DURATION = 1200; // ms - longer history for smoother tracking
-const UPDATE_INTERVAL = 300; // ms (3.3 Hz) - much slower for users with tremors
+const UPDATE_INTERVAL = 1000; // ms (1 Hz) - slower updates for stability
 const CONE_ANGLE_DEG = 40; // degrees
 const MAX_DISTANCE = 600; // px
-const MIN_MOVEMENT_THRESHOLD = 30; // px - ignore small jittery movements
+const MIN_MOVEMENT_THRESHOLD = 200; // px - require bigger movements to trigger updates
 
 class PointerTracker {
   constructor() {
@@ -101,7 +101,7 @@ class PointerTracker {
     };
 
     const speed = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
-    this.isMoving = speed > 20; // Higher threshold to ignore tremors
+    this.isMoving = speed > 50; // Much higher threshold to ignore tremors
   }
 
   // Filter candidates within prediction cone
@@ -111,7 +111,7 @@ class PointerTracker {
     }
 
     const speed = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
-    if (speed < 10) return [];
+    if (speed < 30) return [];
 
     // Normalize velocity to direction vector
     const dirX = this.velocity.x / speed;
@@ -150,6 +150,36 @@ class PointerTracker {
         });
       }
     }
+
+    return filtered;
+  }
+
+  // Filter candidates by proximity to current position (for stationary cursor)
+  filterByProximity(candidates, maxProximityDistance = 300) {
+    const currentPos = this.currentPosition;
+    const filtered = [];
+
+    for (const candidate of candidates) {
+      const { center } = candidate;
+      
+      // Calculate distance to candidate
+      const toTargetX = center.x - currentPos.x;
+      const toTargetY = center.y - currentPos.y;
+      const distance = Math.sqrt(toTargetX ** 2 + toTargetY ** 2);
+
+      if (distance <= maxProximityDistance) {
+        // Add distance-based score (closer = higher score)
+        filtered.push({
+          ...candidate,
+          distance: distance,
+          alignment: 1.0 - (distance / maxProximityDistance), // Closer is better
+          aheadness: 0 // Not moving, so no directional preference
+        });
+      }
+    }
+
+    // Sort by distance (closest first)
+    filtered.sort((a, b) => a.distance - b.distance);
 
     return filtered;
   }

@@ -172,11 +172,11 @@ function updatePredictions() {
   // Get all candidates
   const candidates = candidateDetector.getCandidates();
   
-  // Filter by prediction cone
-  const inCone = pointerTracker.filterCandidatesInCone(candidates);
+  // Show nearby elements (proximity-based only)
+  const filtered = pointerTracker.filterByProximity(candidates, 300);
 
   // Check for risky actions
-  const withRisk = inCone.map(c => ({
+  const withRisk = filtered.map(c => ({
     ...c,
     isRisky: riskDetector.isRisky(c)
   }));

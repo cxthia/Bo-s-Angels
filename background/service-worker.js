@@ -255,9 +255,11 @@ async function handlePermissionGranted(message, sendResponse) {
     }
     
     // Start speech recognition
-    await chrome.runtime.sendMessage({
-      type: 'start-speech-recognition'
+    console.log('[Background] Sending start-speech message to offscreen...');
+    const response = await chrome.runtime.sendMessage({
+      type: 'start-speech'
     });
+    console.log('[Background] Start speech response:', response);
     
     // Notify popup of success
     broadcastToPopup({ type: 'voice-enabled', success: true });
