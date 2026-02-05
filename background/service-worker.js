@@ -114,6 +114,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
       break;
 
+    case 'permission-granted':
+      handlePermissionGranted(message, sendResponse);
+      break;
+
+    case 'permission-denied':
+      handlePermissionDenied(message, sendResponse);
+      break;
+
     default:
       sendResponse({ success: false, error: 'Unknown message type' });
   }
@@ -142,24 +150,50 @@ async function handleEnableVoice(enabled, sendResponse) {
   await chrome.storage.local.set({ voiceEnabled: enabled });
 
   if (enabled) {
-    // Create offscreen document and start listening
-    await createOffscreenDocument();
-    
-    // Wait a bit for offscreen to initialize
-    setTimeout(async () => {
-      try {
-        await chrome.runtime.sendMessage({ type: 'start-speech' });
-        sendResponse({ success: true });
-      } catch (error) {
-        console.error('[Background] Error starting speech:', error);
-        sendResponse({ success: false, error: error.message });
+    try {
+      // Check if offscreen already exists
+      const existingContexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT']
+      });
+      
+      if (existingContexts.length === 0) {
+        console.log('[Background] Creating offscreen document...');
+        await chrome.offscreen.createDocument({
+          url: 'offscreen/offscreen.html',
+          reasons: ['USER_MEDIA'],
+          justification: 'Speech recognition requires microphone access for voice commands'
+        });
+        offscreenDocumentExists = true;
+        console.log('[Background] Offscreen document created');
+      } else {
+        offscreenDocumentExists = true;
+        console.log('[Background] Offscreen document already exists');
       }
-    }, 500);
+      
+      // Wait briefly for offscreen to initialize
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Start speech recognition (permission already granted by popup)
+      const response = await chrome.runtime.sendMessage({ type: 'start-speech' });
+      console.log('[Background] Speech start response:', response);
+      sendResponse({ success: true });
+      
+    } catch (error) {
+      console.error('[Background] Error enabling voice:', error);
+      offscreenDocumentExists = false;
+      voiceEnabled = false;
+      await chrome.storage.local.set({ voiceEnabled: false });
+      sendResponse({ 
+        success: false, 
+        error: error.message || 'Failed to start voice recognition'
+      });
+    }
   } else {
     // Stop listening
     try {
-      await chrome.runtime.sendMessage({ type: 'stop-speech' });
-      // Don't close offscreen immediately - keep it for quick restart
+      if (offscreenDocumentExists) {
+        await chrome.runtime.sendMessage({ type: 'stop-speech' });
+      }
       sendResponse({ success: true });
     } catch (error) {
       console.error('[Background] Error stopping speech:', error);
@@ -194,6 +228,75 @@ async function broadcastToPopup(message) {
   } catch (error) {
     // Popup might not be open
   }
+}
+
+async function handlePermissionGranted(message, sendResponse) {
+  console.log('[Background] Microphone permission granted!');
+  
+  // Now proceed with enabling voice
+  voiceEnabled = true;
+  await chrome.storage.local.set({ voiceEnabled: true });
+  
+  try {
+    // Check if offscreen already exists
+    const existingContexts = await chrome.runtime.getContexts({
+      contextTypes: ['OFFSCREEN_DOCUMENT']
+    });
+    
+    if (existingContexts.length > 0) {
+      console.log('[Background] Offscreen document already exists');
+      offscreenDocumentExists = true;
+    } else {
+      await createOffscreenDocument();
+      
+      // Wait for offscreen to initialize
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    // Start speech recognition
+    await chrome.runtime.sendMessage({
+      type: 'start-speech-recognition'
+    });
+    
+    // Notify popup of success
+    broadcastToPopup({ type: 'voice-enabled', success: true });
+    
+    // Notify all content scripts
+    const tabs = await chrome.tabs.query({});
+    tabs.forEach(tab => {
+      chrome.tabs.sendMessage(tab.id, {
+        type: 'voice-state-changed',
+        enabled: true
+      }).catch(() => {});
+    });
+    
+    sendResponse({ success: true });
+  } catch (error) {
+    console.error('[Background] Error enabling voice after permission:', error);
+    voiceEnabled = false;
+    await chrome.storage.local.set({ voiceEnabled: false });
+    broadcastToPopup({ 
+      type: 'voice-error', 
+      error: error.message 
+    });
+    sendResponse({ success: false, error: error.message });
+  }
+}
+
+async function handlePermissionDenied(message, sendResponse) {
+  console.error('[Background] Microphone permission denied:', message.error);
+  
+  voiceEnabled = false;
+  await chrome.storage.local.set({ voiceEnabled: false });
+  
+  // Notify popup of failure
+  broadcastToPopup({ 
+    type: 'voice-error',
+    error: message.error || 'Permission denied',
+    errorName: message.error || 'NotAllowedError'
+  });
+  
+  sendResponse({ success: false, error: message.error });
 }
 
 // Clean up on extension unload

@@ -1,12 +1,22 @@
 // offscreen.js - Persistent voice recognition in offscreen document
 
+console.log('[Offscreen] Document loading...');
+
+// Check for Speech API support immediately
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SpeechRecognition) {
+  console.error('[Offscreen] Speech API not supported');
+  chrome.runtime.sendMessage({
+    type: 'speech-error',
+    error: 'not-supported'
+  });
+}
+
 let recognition = null;
 let isListening = false;
 
 // Initialize speech recognition
 function initSpeechRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  
   if (!SpeechRecognition) {
     console.error('[Offscreen] Web Speech API not supported');
     chrome.runtime.sendMessage({
@@ -49,17 +59,24 @@ function initSpeechRecognition() {
     
     // Handle specific errors
     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      console.error('[Offscreen] Microphone permission denied:', event);
       chrome.runtime.sendMessage({
         type: 'speech-error',
-        error: 'permission-denied'
+        error: 'permission-denied',
+        details: 'Microphone access was denied. Please allow microphone access in Chrome settings and try again.'
       });
+      isListening = false;
     } else if (event.error === 'network') {
+      console.warn('[Offscreen] Network error, will retry...');
       // Retry after network error
       setTimeout(() => {
         if (isListening) {
           startListening();
         }
       }, 1000);
+    } else if (event.error === 'no-speech') {
+      // No speech detected - this is normal, don't treat as error
+      console.log('[Offscreen] No speech detected, continuing to listen...');
     } else {
       chrome.runtime.sendMessage({
         type: 'speech-error',
@@ -99,13 +116,18 @@ function startListening() {
   try {
     isListening = true;
     recognition.start();
+    console.log('[Offscreen] Speech recognition started');
   } catch (error) {
     console.error('[Offscreen] Error starting recognition:', error);
+    isListening = false;
     // Recognition might already be running
     if (error.name !== 'InvalidStateError') {
       chrome.runtime.sendMessage({
         type: 'speech-error',
-        error: error.message
+        error: error.name === 'NotAllowedError' ? 'permission-denied' : error.message,
+        details: error.name === 'NotAllowedError' 
+          ? 'Microphone permission not granted. Please reload the extension and allow microphone access.'
+          : error.message
       });
     }
   }

@@ -60,30 +60,89 @@ enableExtensionCheckbox.addEventListener('change', async (e) => {
 enableVoiceCheckbox.addEventListener('change', async (e) => {
   state.voiceEnabled = e.target.checked;
   
-  // Show loading state
-  voiceStatusDiv.textContent = state.voiceEnabled ? 'Starting...' : 'Stopping...';
-  voiceStatusDiv.className = 'voice-status loading';
-
-  try {
-    const response = await chrome.runtime.sendMessage({
-      type: 'enable-voice',
-      enabled: state.voiceEnabled
-    });
-
-    if (response.success) {
-      updateStatus();
-    } else {
-      throw new Error(response.error || 'Failed to toggle voice');
+  if (state.voiceEnabled) {
+    // Request microphone permission via iframe injection
+    voiceStatusDiv.textContent = 'Requesting microphone...';
+    voiceStatusDiv.className = 'voice-status loading';
+    
+    try {
+      // Get active tab
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
+      if (!tab) {
+        throw new Error('No active tab found');
+      }
+      
+      // Check if tab URL is valid for content scripts
+      if (tab.url && (
+        tab.url.startsWith('chrome://') ||
+        tab.url.startsWith('edge://') ||
+        tab.url.startsWith('chrome-extension://') ||
+        tab.url.startsWith('about:') ||
+        tab.url === 'chrome://newtab/'
+      )) {
+        throw new Error('Cannot run on this page. Please navigate to a normal website (like google.com)');
+      }
+      
+      // Request content script to inject permission iframe
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        type: 'request-microphone-permission'
+      });
+      
+      if (!response || !response.success) {
+        throw new Error('Content script not ready. Try refreshing the page');
+      }
+      
+      console.log('[Popup] Permission iframe injection requested');
+      
+      // Wait for permission result from background
+      // The background will receive permission-granted or permission-denied message
+      // We'll get updated via the existing message flow
+      voiceStatusDiv.textContent = 'Waiting for permission...';
+      
+    } catch (error) {
+      console.error('[Popup] Error requesting permission:', error);
+      
+      // Revert checkbox
+      enableVoiceCheckbox.checked = false;
+      state.voiceEnabled = false;
+      
+      // Better error messages
+      let errorMessage = error.message;
+      let errorHint = 'Try refreshing the page';
+      
+      if (error.message.includes('Receiving end does not exist')) {
+        errorMessage = 'Extension not ready on this page';
+        errorHint = 'Navigate to a website like google.com and try again';
+      } else if (error.message.includes('Cannot run on this page')) {
+        errorMessage = 'Cannot use on special pages';
+        errorHint = 'Go to any normal website (google.com, youtube.com, etc.)';
+      }
+      
+      voiceStatusDiv.innerHTML = `❌ ${errorMessage}<br><small>${errorHint}</small>`;
+      voiceStatusDiv.className = 'voice-status error';
     }
-  } catch (error) {
-    console.error('[Popup] Error toggling voice:', error);
+  } else {
+    // Disabling voice
+    voiceStatusDiv.textContent = 'Stopping...';
+    voiceStatusDiv.className = 'voice-status loading';
     
-    // Revert checkbox
-    enableVoiceCheckbox.checked = !state.voiceEnabled;
-    state.voiceEnabled = !state.voiceEnabled;
-    
-    voiceStatusDiv.textContent = 'Error: ' + error.message;
-    voiceStatusDiv.className = 'voice-status error';
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'enable-voice',
+        enabled: false
+      });
+
+      if (response.success) {
+        updateStatus();
+      } else {
+        throw new Error(response.error || 'Failed to stop voice');
+      }
+    } catch (error) {
+      console.error('[Popup] Error stopping voice:', error);
+      voiceStatusDiv.textContent = 'Error: ' + error.message;
+      voiceStatusDiv.className = 'voice-status error';
+    }
   }
 });
 
@@ -133,10 +192,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     case 'speech-error':
       if (message.error === 'permission-denied') {
-        voiceStatusDiv.textContent = '❌ Microphone permission denied';
+        voiceStatusDiv.innerHTML = '❌ Microphone denied<br><small>Please allow microphone in Chrome settings</small>';
         voiceStatusDiv.className = 'voice-status error';
         enableVoiceCheckbox.checked = false;
         state.voiceEnabled = false;
+        
+        // Show instructions
+        setTimeout(() => {
+          if (confirm('Microphone access was denied. Would you like to see instructions on how to enable it?')) {
+            alert('To enable microphone:\n\n1. Click the lock/camera icon in the address bar\n2. Find "Microphone" setting\n3. Change to "Allow"\n4. Reload this extension\n5. Try enabling voice again');
+          }
+        }, 500);
       } else if (message.error === 'not-supported') {
         voiceStatusDiv.textContent = '❌ Speech API not supported';
         voiceStatusDiv.className = 'voice-status error';
@@ -145,6 +211,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         voiceStatusDiv.textContent = '⚠️ Error: ' + message.error;
         voiceStatusDiv.className = 'voice-status error';
       }
+      break;
+
+    case 'voice-enabled':
+      if (message.success) {
+        voiceStatusDiv.textContent = '✅ Voice enabled';
+        voiceStatusDiv.className = 'voice-status listening';
+        enableVoiceCheckbox.checked = true;
+        state.voiceEnabled = true;
+      }
+      break;
+
+    case 'voice-error':
+      enableVoiceCheckbox.checked = false;
+      state.voiceEnabled = false;
+      
+      if (message.errorName === 'NotAllowedError' || message.error === 'NotAllowedError') {
+        voiceStatusDiv.innerHTML = '❌ Permission denied<br><small>Please allow microphone when prompted</small>';
+      } else if (message.errorName === 'NotFoundError') {
+        voiceStatusDiv.innerHTML = '❌ No microphone<br><small>Connect a microphone and try again</small>';
+      } else {
+        voiceStatusDiv.innerHTML = `❌ Error<br><small>${message.error || 'Unknown error'}</small>`;
+      }
+      voiceStatusDiv.className = 'voice-status error';
       break;
   }
 });

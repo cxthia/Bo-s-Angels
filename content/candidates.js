@@ -1,6 +1,7 @@
 // candidates.js - Detects and manages clickable elements on the page
 
 const MAX_CANDIDATES = 200;
+const MIN_ELEMENT_SIZE = 100; // px² - minimum area to be considered clickable
 
 // Selectors for interactive elements
 const INTERACTIVE_SELECTORS = [
@@ -34,9 +35,14 @@ class CandidateDetector {
     }
 
     const rect = element.getBoundingClientRect();
-    return rect.width > 0 && rect.height > 0 &&
+    const area = rect.width * rect.height;
+    
+    // Must have minimum size and be within viewport
+    return area >= MIN_ELEMENT_SIZE &&
+           rect.width > 10 && rect.height > 10 && // Not too thin/narrow
            rect.top < window.innerHeight && rect.bottom > 0 &&
-           rect.left < window.innerWidth && rect.right > 0;
+           rect.left < window.innerWidth && rect.right > 0 &&
+           rect.top >= 0 && rect.left >= 0; // Fully in viewport
   }
 
   // Check if element is disabled
@@ -44,6 +50,20 @@ class CandidateDetector {
     return element.disabled || 
            element.getAttribute('aria-disabled') === 'true' ||
            element.classList.contains('disabled');
+  }
+
+  // Check if element is truly clickable (not covered or pointer-events: none)
+  isClickable(element) {
+    // Check if element or parent has pointer-events: none
+    let current = element;
+    while (current && current !== document.body) {
+      const style = window.getComputedStyle(current);
+      if (style.pointerEvents === 'none') {
+        return false;
+      }
+      current = current.parentElement;
+    }
+    return true;
   }
 
   // Get candidate score (priority based on element type)
@@ -68,7 +88,7 @@ class CandidateDetector {
     for (let i = 0; i < elements.length && candidates.length < MAX_CANDIDATES; i++) {
       const element = elements[i];
       
-      if (!this.isVisible(element) || this.isDisabled(element)) {
+      if (!this.isVisible(element) || this.isDisabled(element) || !this.isClickable(element)) {
         continue;
       }
 

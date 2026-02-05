@@ -1,7 +1,7 @@
 // ranking.js - Scores and ranks candidates, applies hysteresis
 
 const DEFAULT_K = 6;
-const HYSTERESIS_TIME = 800; // ms
+const HYSTERESIS_TIME = 2000; // ms - much longer to keep predictions stable for users with tremors
 
 // Scoring weights
 const WEIGHTS = {

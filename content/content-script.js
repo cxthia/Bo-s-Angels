@@ -174,6 +174,32 @@ function updatePredictions() {
   }
 }
 
+// Inject iframe for microphone permission
+function injectMicrophonePermissionIframe() {
+  // Check if iframe already exists
+  if (document.getElementById('voice-hints-permission-iframe')) {
+    console.log('[Voice Hints] Permission iframe already exists');
+    return;
+  }
+
+  console.log('[Voice Hints] Injecting permission iframe');
+  
+  const iframe = document.createElement('iframe');
+  iframe.id = 'voice-hints-permission-iframe';
+  iframe.src = chrome.runtime.getURL('permission/permission.html');
+  iframe.allow = 'microphone';
+  iframe.style.display = 'none';
+  iframe.style.position = 'fixed';
+  iframe.style.top = '-1000px';
+  iframe.style.left = '-1000px';
+  iframe.style.width = '1px';
+  iframe.style.height = '1px';
+  
+  document.body.appendChild(iframe);
+  
+  console.log('[Voice Hints] Permission iframe injected');
+}
+
 // Handle messages from background
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('[Voice Hints] Received message:', message.type);
@@ -197,6 +223,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'update-settings':
       state.settings = message.settings;
       applySettings();
+      sendResponse({ success: true });
+      break;
+
+    case 'request-microphone-permission':
+      injectMicrophonePermissionIframe();
       sendResponse({ success: true });
       break;
 

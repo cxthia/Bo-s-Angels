@@ -1,9 +1,10 @@
 // pointer.js - Tracks pointer movement and computes prediction cone
 
-const HISTORY_DURATION = 600; // ms
-const UPDATE_INTERVAL = 50; // ms (20 Hz)
+const HISTORY_DURATION = 1200; // ms - longer history for smoother tracking
+const UPDATE_INTERVAL = 300; // ms (3.3 Hz) - much slower for users with tremors
 const CONE_ANGLE_DEG = 40; // degrees
 const MAX_DISTANCE = 600; // px
+const MIN_MOVEMENT_THRESHOLD = 30; // px - ignore small jittery movements
 
 class PointerTracker {
   constructor() {
@@ -68,38 +69,37 @@ class PointerTracker {
   }
 
   computeVelocity() {
-    if (this.history.length < 2) {
+    if (this.history.length < 3) {
       this.velocity = { x: 0, y: 0 };
       this.isMoving = false;
       return;
     }
 
-    // Use weighted moving average for smoother velocity
-    let sumX = 0, sumY = 0, sumWeight = 0;
-    const recent = this.history.slice(-5); // Last 5 positions
+    // Use much smoother averaging for users with tremors
+    const recent = this.history.slice(-10); // Last 10 positions for smoother average
+    
+    // Calculate overall displacement (ignoring jitter)
+    const first = recent[0];
+    const last = recent[recent.length - 1];
+    const totalDx = last.x - first.x;
+    const totalDy = last.y - first.y;
+    const totalDistance = Math.sqrt(totalDx ** 2 + totalDy ** 2);
+    const totalTime = (last.timestamp - first.timestamp) / 1000;
 
-    for (let i = 1; i < recent.length; i++) {
-      const weight = i; // More recent = higher weight
-      const dt = (recent[i].timestamp - recent[i-1].timestamp) / 1000; // seconds
-      
-      if (dt > 0) {
-        const vx = (recent[i].x - recent[i-1].x) / dt;
-        const vy = (recent[i].y - recent[i-1].y) / dt;
-        sumX += vx * weight;
-        sumY += vy * weight;
-        sumWeight += weight;
-      }
+    // Ignore small movements (likely tremor/jitter)
+    if (totalDistance < MIN_MOVEMENT_THRESHOLD || totalTime === 0) {
+      this.isMoving = false;
+      return;
     }
 
-    if (sumWeight > 0) {
-      this.velocity = {
-        x: sumX / sumWeight,
-        y: sumY / sumWeight
-      };
+    // Calculate smoothed velocity based on overall displacement
+    this.velocity = {
+      x: totalDx / totalTime,
+      y: totalDy / totalTime
+    };
 
-      const speed = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
-      this.isMoving = speed > 10; // pixels per second threshold
-    }
+    const speed = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
+    this.isMoving = speed > 20; // Higher threshold to ignore tremors
   }
 
   // Filter candidates within prediction cone

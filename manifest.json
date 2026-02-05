@@ -32,7 +32,8 @@
         "content/content-script.js"
       ],
       "css": ["content/overlay.css"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "match_about_blank": true
     }
   ],
   "options_page": "options/options.html",
@@ -56,7 +57,11 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["content/overlay.css"],
+      "resources": [
+        "content/overlay.css",
+        "permission/permission.html",
+        "permission/permission.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ]
