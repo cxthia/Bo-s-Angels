@@ -1,3 +1,12 @@
+
+
+https://github.com/user-attachments/assets/ed1fc612-efb2-471b-89cb-c7aa3c70b72a
+
+
+
+DEMO: here, the user is trying to see cat images so he moves towards the images button but cannot stably reach it. when the suggestions pop up, he can lift his hand off the touchpad and click on the number he wants. in this case, it is 1.
+next, he  wants to look at a specific cat photo so he moves the cursor to the general area and click on that cat picture, which is number 2 on the keyboard
+
 # Bo's Angels - Predictive Hints
 
 **An accessible Chrome extension that assists users with motor disabilities by predicting click targets and enabling keyboard-based selection.**
