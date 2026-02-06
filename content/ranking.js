@@ -12,6 +12,8 @@ const WEIGHTS = {
   risk: 5.0
 };
 
+const LEARNING_RATE = 0.1; // How quickly to adapt weights
+
 class CandidateRanker {
   constructor() {
     this.topK = DEFAULT_K;
@@ -19,6 +21,8 @@ class CandidateRanker {
     this.lastPredictionTime = 0;
     this.weights = { ...WEIGHTS };
     this.hysteresisTime = HYSTERESIS_TIME;
+    this.learningRate = LEARNING_RATE;
+    this.feedbackCount = 0;
   }
 
   // Compute score for a candidate
@@ -111,6 +115,100 @@ class CandidateRanker {
 
   getWeights() {
     return { ...this.weights };
+  }
+
+  // Online learning: Update weights based on user feedback
+  learnFromFeedback(clickedCandidate, allCandidates) {
+    if (!clickedCandidate || allCandidates.length === 0) return;
+
+    // Find the rank of the clicked element
+    const clickedIndex = allCandidates.findIndex(c => c.element === clickedCandidate.element);
+    if (clickedIndex === -1) return;
+
+    console.log('[Ranker] Learning from feedback. Clicked rank:', clickedIndex + 1);
+
+    // Extract features for clicked element
+    const clicked = allCandidates[clickedIndex];
+    const clickedFeatures = this.extractFeatures(clicked);
+
+    // If user clicked a lower-ranked element, adjust weights
+    // Reward features of clicked element, penalize features of higher-ranked elements
+    if (clickedIndex > 0) {
+      // User chose element that wasn't #1 - learn from this
+      const topElement = allCandidates[0];
+      const topFeatures = this.extractFeatures(topElement);
+
+      // Update weights: increase importance of clicked features, decrease others
+      for (const feature in clickedFeatures) {
+        if (feature === 'risk') continue; // Don't adjust risk weight
+
+        const clickedValue = clickedFeatures[feature];
+        const topValue = topFeatures[feature];
+
+        // If clicked element had higher value in this feature, increase weight
+        // If top element had higher value, decrease weight slightly
+        if (clickedValue > topValue) {
+          this.weights[feature] += this.learningRate * (clickedValue - topValue);
+        } else {
+          this.weights[feature] -= this.learningRate * 0.5 * (topValue - clickedValue);
+        }
+
+        // Keep weights positive and bounded
+        this.weights[feature] = Math.max(0.1, Math.min(10, this.weights[feature]));
+      }
+
+      this.feedbackCount++;
+      console.log('[Ranker] Updated weights:', this.weights, 'Feedback count:', this.feedbackCount);
+
+      // Save learned weights periodically
+      if (this.feedbackCount % 5 === 0) {
+        this.saveWeights();
+      }
+    } else {
+      console.log('[Ranker] User clicked top prediction - weights already good!');
+    }
+  }
+
+  extractFeatures(candidate) {
+    const alignmentScore = candidate.alignment || 0;
+    const sizeScore = Math.min(1, (candidate.size || 0) / 10000);
+    const distanceScore = 1 / (1 + Math.log(1 + (candidate.distance || 1)));
+    const priorityScore = (candidate.priority || 0) / 10;
+
+    return {
+      alignment: alignmentScore,
+      size: sizeScore,
+      distance: distanceScore,
+      priority: priorityScore
+    };
+  }
+
+  async loadWeights() {
+    try {
+      const result = await chrome.storage.local.get(['learnedWeights']);
+      if (result.learnedWeights) {
+        this.weights = { ...WEIGHTS, ...result.learnedWeights };
+        console.log('[Ranker] Loaded learned weights:', this.weights);
+      }
+    } catch (error) {
+      console.error('[Ranker] Error loading weights:', error);
+    }
+  }
+
+  async saveWeights() {
+    try {
+      await chrome.storage.local.set({ learnedWeights: this.weights });
+      console.log('[Ranker] Saved learned weights:', this.weights);
+    } catch (error) {
+      console.error('[Ranker] Error saving weights:', error);
+    }
+  }
+
+  resetWeights() {
+    this.weights = { ...WEIGHTS };
+    this.feedbackCount = 0;
+    chrome.storage.local.remove(['learnedWeights']);
+    console.log('[Ranker] Reset weights to defaults');
   }
 }
 

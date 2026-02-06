@@ -57,6 +57,9 @@ async function init() {
   // Apply settings
   applySettings();
 
+  // Load learned weights for ML
+  await ranker.loadWeights();
+
   // Set up event handlers
   setupEventHandlers();
 
@@ -102,6 +105,10 @@ function setupEventHandlers() {
   inputHandler.onAction = (candidate) => {
     const timeToSelect = selectionStartTime ? Date.now() - selectionStartTime : 0;
     logger.logSelection(candidate, 'keyboard', timeToSelect);
+    
+    // ML: Learn from user's choice
+    ranker.learnFromFeedback(candidate, currentPredictions);
+    
     selectionStartTime = null;
   };
 
@@ -309,6 +316,10 @@ function handleVoiceCommand(message) {
     if (candidate) {
       const timeToSelect = selectionStartTime ? Date.now() - selectionStartTime : 0;
       logger.logSelection(candidate, 'voice', timeToSelect);
+      
+      // ML: Learn from user's voice choice
+      ranker.learnFromFeedback(candidate, currentPredictions);
+      
       selectionStartTime = Date.now(); // Reset for next selection
     }
 

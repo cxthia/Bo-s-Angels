@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "Predictive Voice Hints",
   "version": "1.0.0",
-  "description": "Voice-enabled navigation assistant for users with motor disabilities. Predicts click targets and enables voice selection.",
+  "description": "Accessible navigation assistant for users with motor disabilities. Predicts click targets and enables voice/keyboard selection.",
+  "author": "Bo's Angels - Intuition v12 Hackathon",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",

@@ -13,9 +13,14 @@ async function requestMicrophonePermission() {
     stream.getTracks().forEach(track => track.stop());
     
     // Notify background that permission was granted
+    console.log("[Permission] Sending permission-granted message to background...");
     chrome.runtime.sendMessage({
       type: "permission-granted",
       permission: "microphone"
+    }).then(response => {
+      console.log("[Permission] Background response:", response);
+    }).catch(error => {
+      console.error("[Permission] Failed to send to background:", error);
     });
     
   } catch (error) {
