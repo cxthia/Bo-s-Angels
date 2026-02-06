@@ -1,6 +1,6 @@
-# Bo's Angels - Predictive Voice Hints
+# Bo's Angels - Predictive Hints
 
-**An accessible Chrome extension that assists users with motor disabilities by predicting click targets and enabling voice-based selection.**
+**An accessible Chrome extension that assists users with motor disabilities by predicting click targets and enabling keyboard-based selection.**
 
 🏆 **Hackathon Project** - Intuition v12  
 👥 **Team**: Bo's Angels
@@ -16,16 +16,14 @@ Users with motor disabilities (tremors, limited dexterity, motor control issues)
 
 ## 💡 Solution
 
-**Predictive Voice Hints** uses intelligent pointer tracking to predict where users intend to click, displaying numbered hints that can be activated via:
-- **Voice commands** ("one", "two", "three")
+**Predictive Hints** uses intelligent pointer tracking to predict where users intend to click, displaying numbered hints that can be activated via:
 - **Keyboard shortcuts** (1-6 keys)
 - Safety confirmations for risky actions (delete, submit, pay)
 
 ## ✨ Key Features
 
 - **🎯 Smart Prediction**: Analyzes pointer direction, velocity, and trajectory to predict likely click targets
-- **🎤 Voice Commands**: Hands-free selection by saying "one" through "six"
-- **⌨️ Keyboard Fallback**: Press 1-6 keys for non-voice users
+- **⌨️ Keyboard Selection**: Press 1-6 keys to select predicted targets
 - **🛡️ Risk Protection**: Requires confirmation for dangerous actions (delete, pay, submit)
 - **🔒 Privacy-First**: All processing runs locally, no data transmission
 - **📊 Metrics Tracking**: Logs selection times, misclicks, and usage patterns for evaluation
@@ -49,17 +47,12 @@ Users with motor disabilities (tremors, limited dexterity, motor control issues)
    - Select the `Bo-s-Angels` folder
    - ✅ Extension installed!
 
-3. **Grant Microphone Permission** (for voice commands)
-   - Click the extension icon in the Chrome toolbar
-   - Toggle **"Enable Voice Commands"** to ON
-   - Accept the microphone permission prompt
-
 ### First Use
 
 1. Open the included [test-page.html](test-page.html) file in Chrome
 2. Click the extension icon and ensure **"Enable Extension"** is checked
 3. Move your mouse toward any button - watch numbered hints appear!
-4. Try pressing `1`, `2`, `3` on your keyboard or saying **"one"**, **"two"**, **"three"**
+4. Try pressing `1`, `2`, `3` on your keyboard to select the hints
 
 **That's it!** The extension is now predicting your intended clicks.
 
@@ -75,22 +68,15 @@ Users with motor disabilities (tremors, limited dexterity, motor control issues)
 
 1. **Move your mouse** toward any area with clickable elements
 2. **Numbered hints (1-6)** appear on predicted targets in your path
-3. **Select a hint** by pressing the number key or saying the number
+3. **Select a hint** by pressing the number key
 4. The element is clicked automatically!
 
-### Input Methods
+### Keyboard Shortcuts
 
-#### Keyboard Shortcuts
 - **1-6**: Select the numbered hint
 - **Alt+H**: Toggle hints on/off
 - **Enter**: Confirm risky action
 - **Escape**: Cancel pending action
-
-#### Voice Commands
-- **"one"** through **"six"**: Select the numbered hint
-- **"click one"**, **"select two"**: Alternative phrasing
-- **"confirm"**: Approve a risky action
-- **"cancel"** / **"stop"**: Cancel pending action
 
 ### Settings & Customization
 
@@ -126,12 +112,12 @@ Bo-s-Angels/
 │   ├── risk.js               # Risky action detection
 │   ├── overlay.js            # Shadow DOM hint rendering
 │   ├── overlay.css           # Hint badge styles
-│   ├── input.js              # Keyboard & voice input handling
+│   ├── input.js              # Keyboard input handling
 │   └── logging.js            # Metrics collection & export
 │
-├── offscreen/               # Persistent voice recognition
+├── offscreen/               # Background processing
 │   ├── offscreen.html
-│   └── offscreen.js         # Web Speech API integration
+│   └── offscreen.js
 │
 ├── popup/                   # Extension popup UI
 │   ├── popup.html
@@ -179,20 +165,14 @@ Bo-s-Angels/
 **4. Risk Detection** ([risk.js](content/risk.js))
 - Keyword matching: delete, remove, pay, purchase, submit, sign out, etc.
 - Checks element text, aria-label, title, and form action URLs
-- Requires double confirmation (press twice or say "confirm")
+- Requires double confirmation (press twice)
 
-**5. Voice Recognition** ([offscreen/offscreen.js](offscreen/offscreen.js))
-- Uses Chrome's Web Speech API (webkitSpeechRecognition)
-- Runs in persistent offscreen document to stay active
-- Continuous mode with automatic error recovery
-- Forwards transcripts to content script via background
-
-**6. UI Overlay** ([overlay.js](content/overlay.js))
+**5. UI Overlay** ([overlay.js](content/overlay.js))
 - Isolated Shadow DOM prevents style conflicts
 - Fixed-position numbered badges (1-6)
 - Highlight rings around target elements
 - Color coding: Blue (safe), Red (risky)
-- Pulse animation during voice listening
+- Visual feedback for active predictions
 
 ### Performance Optimizations
 
@@ -206,7 +186,7 @@ Bo-s-Angels/
 - ✅ **No Data Transmission**: All processing runs locally in browser
 - ✅ **No User Tracking**: Metrics stored only in local chrome.storage
 - ✅ **No Content Capture**: Never logs passwords, form values, or typed text
-- ⚠️ **Voice API**: Chrome's Speech API is cloud-backed (Google requirement)
+- ✅ **Fully Local**: All features work completely offline
 
 ---
 
@@ -240,7 +220,7 @@ Test on complex web applications:
 3. Click **"Export Metrics as JSON"**
 4. Analyze:
    - Average selection time
-   - Voice vs keyboard usage ratio
+   - Selection method statistics
    - Misclick count
    - Total pointer travel distance
 
@@ -255,7 +235,6 @@ Test on complex web applications:
 | Issue | Solution |
 |-------|----------|
 | **No hints appearing** | • Check extension is enabled in popup<br>• Move your mouse (hints only show during movement)<br>• Try refreshing the page<br>• Some sites may have conflicting scripts |
-| **Voice not working** | • Check microphone permissions in Chrome<br>• Toggle "Enable Voice Commands" in popup<br>• Requires internet connection (Chrome's Speech API is cloud-based)<br>• Try closing and reopening popup |
 | **Performance is slow** | • Open Options → reduce "Number of Hints" (try 3-4)<br>• Increase "Prediction Stability" to 1000ms+<br>• Complex pages (Notion, Figma) may have higher impact |
 | **Hints appear in wrong places** | • Adjust "Cone Angle" in Options (try narrower, like 30°)<br>• Reduce "Detection Distance" for nearby elements only |
 | **Extension not loading** | • Check Chrome version (requires Manifest V3 support)<br>• Ensure all files are present in folder<br>• Check for errors in `chrome://extensions/` |
@@ -267,13 +246,13 @@ Test on complex web applications:
 ### Target Users
 - **Motor Disabilities**: Tremors, limited dexterity, motor control issues
 - **Accessibility Needs**: RSI, arthritis, temporary injuries
-- **Power Users**: Anyone wanting faster, hands-free navigation
+- **Power Users**: Anyone wanting faster, keyboard-based navigation
 
 ### Example Scenarios
 1. **Email Management**: Quickly navigate Gmail toolbar and thread actions
 2. **Code Reviews**: Navigate GitHub file trees and review buttons
-3. **Online Shopping**: Browse products and checkout with voice
-4. **Social Media**: Interact with feeds hands-free
+3. **Online Shopping**: Browse products and checkout with keyboard shortcuts
+4. **Social Media**: Interact with feeds using keyboard
 5. **Form Filling**: Navigate complex forms with keyboard shortcuts
 
 ---
@@ -292,7 +271,6 @@ This is a hackathon project created for **Intuition v12**. Feedback and suggesti
 ### Project Structure Tips
 - Content scripts are injected into all pages
 - Background service worker handles messaging
-- Offscreen document enables persistent voice recognition
 - Shadow DOM in overlay.js prevents style conflicts
 
 ---
@@ -309,7 +287,6 @@ MIT License - Created for Intuition v12 Hackathon
 
 Built with:
 - Chrome Extension Manifest V3
-- Web Speech API (Chrome)
 - Shadow DOM
 - Chrome Storage API
 
